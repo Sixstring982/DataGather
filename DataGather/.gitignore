@@ -1,0 +1,5 @@
+.settings/
+bin/
+.classpath
+DataGather.iml
+project.properties

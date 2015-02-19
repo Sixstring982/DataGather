@@ -1,10 +1,8 @@
 package com.example.datagather;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -12,14 +10,14 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 
-import android.content.Context;
-import android.os.AsyncTask;
-import android.util.Log;
-import android.widget.Toast;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 class HttpAsyncTask extends AsyncTask<String, Void, String> {
     
-	private Context context; 
+	private Context context;
 	String jsonObjectToPost = "";
 	
 	public HttpAsyncTask(Context _context) {
