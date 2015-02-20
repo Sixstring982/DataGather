@@ -19,7 +19,7 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
     
 	private Context context;
 	String jsonObjectToPost = "";
-	
+
 	public HttpAsyncTask(Context _context) {
 			super();
 			context = _context;
@@ -71,7 +71,7 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
             // ObjectMapper mapper = new ObjectMapper();
             // json = mapper.writeValueAsString(person); 
  
-            // 5. set json to StringEntity
+             // 5. set json to StringEntity
             StringEntity se = new StringEntity(json);
  
             // 6. set httpPost Entity

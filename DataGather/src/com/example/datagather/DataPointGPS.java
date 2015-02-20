@@ -1,8 +1,5 @@
 package com.example.datagather;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 public class DataPointGPS {
 
 	//private vars

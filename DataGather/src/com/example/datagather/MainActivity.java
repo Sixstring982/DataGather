@@ -1,49 +1,30 @@
 package com.example.datagather;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.location.GpsStatus.Listener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
-import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
@@ -69,14 +50,18 @@ public class MainActivity extends Activity {
 	private Location lastLocation;
 	private Time time = new Time();
 	private long timeOfLastSave_MiliSec = 0;
-	private long saveFrequency_MiliSec = 5000;
-	private int maxGPSDataPoints = 50000;
+	private final long saveFrequency_MiliSec = 5000;
+	private final int maxGPSDataPoints = 50000;
 	
 	private ToggleButton tbtn_gps;
 	private TableLayout gpstable;
 	private TextView txtview_CurrentLocationTitle;
-	private TextView txtview_CurrentLon, txtview_CurrentLat, txtview_CurrentAlt, txtview_CurrentTime, txtview_PointsSaved;
-	private TextView txtview_httpReult;
+	private TextView txtview_CurrentLon,
+                     txtview_CurrentLat,
+                     txtview_CurrentAlt,
+                     txtview_CurrentTime,
+                     txtview_PointsSaved,
+                     txtview_httpReult;
 
 	void onLocationReceived(Location loc) {
 		lastLocation = loc;
@@ -196,8 +181,8 @@ public class MainActivity extends Activity {
 
 		// ----------------------------------------------------------
 		// fill UI with saved old data.
-		txtview_CurrentLon.setText(Float.toString(lastupdated_longitude) + "°");
-		txtview_CurrentLat.setText(Float.toString(lastupdated_latitude) + "°");
+		txtview_CurrentLon.setText(Float.toString(lastupdated_longitude) + "ï¿½");
+		txtview_CurrentLat.setText(Float.toString(lastupdated_latitude) + "ï¿½");
 		txtview_CurrentAlt.setText(Float.toString(lastupdated_altitude) + "m");
 		txtview_CurrentTime.setText(lastupdated_time);
 		txtview_PointsSaved.setText("" + numberOfSavedGPSDataPoints);
@@ -228,17 +213,18 @@ public class MainActivity extends Activity {
 		if (lastLocation != null) {
 			// save the Last location into Shared Preferences so they can be
 			// displayed the next time the app starts
-			SharedPreferences mostRecentData = getSharedPreferences(DATA_PREFS_NAME, 0);
-			SharedPreferences.Editor editor = mostRecentData.edit();
+			SharedPreferences mostRecentData =
+                              getSharedPreferences(DATA_PREFS_NAME, 0);
 
-			editor.putFloat("longitude", (float) lastLocation.getLongitude());
-			editor.putFloat("latitude", (float) lastLocation.getLatitude());
-			editor.putFloat("altitude", (float) lastLocation.getAltitude());
-			time.set(lastLocation.getTime());
-			editor.putString("time", time.format("%H:%M:%S %m/%d/%Y"));
+            time.set(lastLocation.getTime());
 
-			// Commit the edits!
-			editor.commit();
+            // Make and commit edits in background
+			mostRecentData.edit()
+                    .putFloat("longitude", (float) lastLocation.getLongitude())
+                    .putFloat("latitude", (float) lastLocation.getLatitude())
+                    .putFloat("altitude", (float) lastLocation.getAltitude())
+                    .putString("time", time.format("%H:%M:%S %m/%d/%Y"))
+                    .apply();
 		}
 
 		super.onStop();
@@ -247,7 +233,10 @@ public class MainActivity extends Activity {
 	// ----------------------------------------------------------
 	// Network Functions
 	public boolean isConnected() {
-		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Activity.CONNECTIVITY_SERVICE);
+		ConnectivityManager connMgr =
+                (ConnectivityManager)
+                        getSystemService(Activity.CONNECTIVITY_SERVICE);
+
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected())
 		{
@@ -261,35 +250,35 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	public void httpPOSTResult(String result)
-	{
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("Post Successful!\n"+result.toString()+"\nDo you want to delete all locally saved GPS Data?");
-		builder.setTitle("GPS Data");
-
-		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+	public void httpPOSTResult(String result) {
+        new AlertDialog.Builder(this)
+		.setMessage("Post Successful!\n" + result + "\nDo you " +
+                           "want to delete all locally saved GPS Data?")
+		.setTitle("GPS Data")
+        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
 			public void onClick(DialogInterface dialog, int id) {
 				clearGPSData();
 			}
-		});
-		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+		})
+		.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
 			public void onClick(DialogInterface dialog, int id) {
 				// User cancelled the dialog
 			}
-		});
-
-		AlertDialog dialog = builder.create();
-		dialog.show();
+		}).create().show();
 	}
 	
 	// ----------------------------------------------------------
 	// Data Functions
 	public void turnOnGPSDataCapture() {
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                                               0, 0, locationListener);
 		capturingGPSData = true;
 
 		updateGPSViewStateStyle();
-		Toast.makeText(self, "Storing GPS Location Data on Local Device.", Toast.LENGTH_LONG).show();
+		Toast.makeText(self, "Storing GPS Location Data on Local Device.",
+                       Toast.LENGTH_LONG).show();
 	}
 
 	public void turnOffGPSDataCapture() {
@@ -297,7 +286,8 @@ public class MainActivity extends Activity {
 		locationManager.removeUpdates(locationListener);
 
 		updateGPSViewStateStyle();
-		Toast.makeText(self, "No longer storing GPS Location Data.", Toast.LENGTH_LONG).show();
+		Toast.makeText(self, "No longer storing GPS Location Data.",
+                       Toast.LENGTH_LONG).show();
 	}
 
 	public void packDataGPSData() {
@@ -347,69 +337,55 @@ public class MainActivity extends Activity {
 	}
 
 	public void onClickedSendGPSDataPoints(View view) {
-		
 		if (isConnected())
 		{
 			numberOfSavedGPSDataPoints = db.getGPSDataPointCount();
 			
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage("Sending " + numberOfSavedGPSDataPoints + " GPS Data Points. Would you like to continue?");
-			builder.setTitle("GPS Data");
+			new AlertDialog.Builder(this)
+			.setMessage("Sending " + numberOfSavedGPSDataPoints +
+                        " GPS Data Points. Would you like to continue?")
+			.setTitle("GPS Data")
 
-			builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					packDataGPSData();
+                    packDataGPSData();
 				}
-			});
-			builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+			})
+			.setNegativeButton("No", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
 					// User cancelled the dialog
 				}
-			});
-
-			AlertDialog dialog = builder.create();
-			dialog.show();
+			}).create().show();
 			
 		}
 		else
 		{
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage("You are not connected to a network. Please enable your Wireless connection or Data Service and try again.");
-			builder.setTitle("GPS Data");
-
-			builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			new AlertDialog.Builder(this)
+			.setMessage("You are not connected to a network. Please enable your " +
+                        "Wireless connection or Data Service and try again.")
+			.setTitle("GPS Data")
+            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
 				}
-			});
-			
-			AlertDialog dialog = builder.create();
-			dialog.show();
-			
+			}).create().show();
 		}
-		
-		
-
 	}
 
 	public void onClickedClearGPSDataPoints(View view) {
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("Are you sure you want to delete all saved GPS Data?");
-		builder.setTitle("GPS Data");
-
-		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		new AlertDialog.Builder(this)
+		.setMessage("Are you sure you want to delete all saved GPS Data?")
+		.setTitle("GPS Data")
+		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
 				clearGPSData();
 			}
-		});
-		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+		})
+		.setNegativeButton("No", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
 				// User cancelled the dialog
 			}
-		});
-
-		AlertDialog dialog = builder.create();
-		dialog.show();
+		}).create().show();
 	}
 
 	public void onClickedViewGPSDataPoints(View view) {
@@ -422,7 +398,6 @@ public class MainActivity extends Activity {
 	private void updateGPSViewStateStyle() {
 		if (capturingGPSData) {
 			if (gpsProviderEnabled) {
-
 				txtview_CurrentLocationTitle.setText("GPS Location - Pending ...");
 				txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 0, 0, 0));
 				setTextViewStyle_Active(txtview_CurrentLon);
@@ -467,21 +442,20 @@ public class MainActivity extends Activity {
 	}
 
 	public void updateUI() {
-
 		Log.d(TAG, "UI Update");
 
 		if (lastLocation != null) {
 			// durationSeconds = getDurationSeconds(mLastLocation.getTime());
 
-			txtview_CurrentLon.setText(Double.toString(lastLocation.getLongitude()) + "°");
-			txtview_CurrentLat.setText(Double.toString(lastLocation.getLatitude()) + "°");
+			txtview_CurrentLon.setText(Double.toString(lastLocation.getLongitude()) + "ï¿½");
+			txtview_CurrentLat.setText(Double.toString(lastLocation.getLatitude()) + "ï¿½");
 			txtview_CurrentAlt.setText(Double.toString(lastLocation.getAltitude()) + "m");
 			time.set(lastLocation.getTime());
 			txtview_CurrentTime.setText(time.format("%H:%M:%S %m/%d/%Y"));
 			txtview_PointsSaved.setText("" + numberOfSavedGPSDataPoints);
 		} else {
-			txtview_CurrentLon.setText(0.0f + "°");
-			txtview_CurrentLat.setText(0.0f + "°");
+			txtview_CurrentLon.setText(0.0f + "ï¿½");
+			txtview_CurrentLat.setText(0.0f + "ï¿½");
 			txtview_CurrentAlt.setText(0.0f + "m");
 			txtview_CurrentTime.setText("--:--:-- --/--/----");
 			txtview_PointsSaved.setText("" + numberOfSavedGPSDataPoints);
